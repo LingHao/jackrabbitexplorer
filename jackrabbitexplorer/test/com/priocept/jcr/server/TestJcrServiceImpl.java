@@ -1,14 +1,14 @@
 package com.priocept.jcr.server;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Session;
 
-import junit.framework.TestCase;
-
-import com.google.gwt.dev.util.collect.HashMap;
 import com.priocept.jcr.client.domain.JcrNode;
+
+import junit.framework.TestCase;
 
 public class TestJcrServiceImpl extends TestCase {
 	
@@ -31,7 +31,7 @@ public class TestJcrServiceImpl extends TestCase {
 	}
 
 	public void testGetNewSession() throws Exception {
-		Session session = jcrServiceImpl.getNewSession(RMI_URL, WORK_SPACE, USER_NAME, PASSWORD);
+		Session session = jcrServiceImpl.getNewSessionViaRmi(RMI_URL, WORK_SPACE, USER_NAME, PASSWORD);
 		assertTrue(session != null && session.isLive());
 	}
 	
