@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -377,8 +378,12 @@ public class JcrServiceImpl extends RemoteServiceServlet implements JcrService {
 					//added a Binary Value text to the jcr:data property, as displaying raw binary in the value cell isn't desirable
 					if (null != property.getName() && property.getName().equalsIgnoreCase("jcr:data")) {
 						properties.put(property.getName() + " (Click to open)", "Binary Value");
-						
-						//Any property of value which starts with http:// will be openable in the frontend 
+					// multi-value properties
+					} else if (property.isMultiple()) {
+					  if (property.getValues() != null) {
+					    properties.put(property.getName(), Arrays.toString(property.getValues()));
+		              }
+				    //Any property of value which starts with http:// will be openable in the frontend 
 					} else if (null != property.getValue() && property.getValue().getString().startsWith("http://")) {
 							properties.put(property.getName() + " (Click to open)", property.getValue().getString());
 					} else {
@@ -643,11 +648,17 @@ public class JcrServiceImpl extends RemoteServiceServlet implements JcrService {
 		}
 		try {
 			Item item = getJcrSession().getItem(sourcePath);
-			if (null == item && !(item instanceof Node)) {
+			if (null == item || !(item instanceof Node)) {
 				return null;
 			}
 			Node pathNode = (Node) item;
-			pathNode.setProperty(name, value);
+			if (value.startsWith("[") && value.endsWith("]")) {
+				value = value.substring(1, value.length() - 1);
+				String[] values = value.split(",");
+				pathNode.setProperty(name, values);
+			} else {
+				pathNode.setProperty(name, value);
+			}
 
 			getJcrSession().save();
 		} catch (Exception e) {
@@ -714,7 +725,13 @@ public class JcrServiceImpl extends RemoteServiceServlet implements JcrService {
 				return null;
 			}
 			Node pathNode = (Node) item;
-			pathNode.setProperty(property, (String) value);
+			if (value.startsWith("[") && value.endsWith("]") && pathNode.getProperty(property).isMultiple()) {
+				value = value.substring(1, value.length() - 1);
+				String[] values = value.split(",");
+				pathNode.setProperty(property, values);
+			} else {
+				pathNode.setProperty(property, value);
+			}
 
 			getJcrSession().save();
 		} catch (Exception e) {
