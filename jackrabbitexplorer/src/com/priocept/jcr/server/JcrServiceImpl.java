@@ -35,6 +35,7 @@ import javax.naming.InitialContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jackrabbit.core.TransientRepository;
+import org.apache.jackrabbit.rmi.repository.RMIRemoteRepository;
 import org.apache.jackrabbit.rmi.repository.URLRemoteRepository;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -197,7 +198,12 @@ public class JcrServiceImpl extends RemoteServiceServlet implements JcrService {
 	public Session getNewSessionViaRmi(String rmiUrl, String workSpace, String userName, String password) throws SerializedException
 	{
 			try {
-				Repository repository = new URLRemoteRepository(rmiUrl);
+				Repository repository = null;
+				if (rmiUrl.toLowerCase().startsWith("http")) {
+					repository = new URLRemoteRepository(rmiUrl);
+				} else {
+					repository = new RMIRemoteRepository(rmiUrl);
+				}
 				SimpleCredentials creds = new SimpleCredentials(userName, password.toCharArray());
 				return repository.login(creds, workSpace);
 			} catch (Exception e) {
